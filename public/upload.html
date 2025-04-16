@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload de Currículo</title>
+</head>
+<body>
+  <h2>Envie seu currículo</h2>
+  <form id="uploadForm">
+    <input type="file" id="file" required />
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const id = "{{ID}}";
+    const supabase = window.supabase.createClient('https://SEU-PROJETO.supabase.co', 'SEU-PUBLIC-ANON-KEY');
+
+    document.getElementById('uploadForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('file').files[0];
+      const { data, error } = await supabase.storage
+        .from('curriculos')
+        .upload(`${id}/${file.name}`, file, { upsert: true });
+
+      if (error) return alert('Erro ao enviar arquivo');
+
+      await fetch('https://seu-n8n.com/webhook/receber-curriculo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: id,
+          file_url: `https://SEU-PROJETO.supabase.co/storage/v1/object/public/curriculos/${id}/${file.name}`
+        })
+      });
+
+      alert('Currículo enviado com sucesso!');
+    };
+  </script>
+</body>
+</html>
